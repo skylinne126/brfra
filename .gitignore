@@ -1,0 +1,20 @@
+# ---- 运行产物（均由脚本自动生成，无需提交）----
+output/
+*.docx
+!assets/report_template.docx
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# ---- 编辑器 / 系统 ----
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini

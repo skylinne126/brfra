@@ -1,0 +1,11 @@
+# 生成 Word 报告所需的额外依赖（不生成报告时可以不装）
+-r requirements.txt
+
+# 把 LaTeX 公式转成 Word 原生公式（OMML 的第一步：LaTeX → MathML）
+latex2mathml>=3.78
+
+# 解析 Office 自带的 MML2OMML.XSL 转换表（MathML → OMML）
+lxml>=4.9
+
+# 仅 Windows：调用本机 Word 自动更新报告里的目录与页码域
+pywin32>=306; sys_platform == "win32"

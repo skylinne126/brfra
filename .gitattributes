@@ -1,0 +1,10 @@
+# 统一换行符处理，避免跨平台提交产生整文件差异
+* text=auto
+
+# 二进制文件不做换行转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.docx binary
+*.ttc binary
+*.ttf binary

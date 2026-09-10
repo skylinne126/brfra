@@ -141,8 +141,10 @@ def build_equations(b: ReportBuilder) -> None:
     b.add(equation(EQ["equate"], 15))
 
 
-def build(repo_url: str = REPO_URL, update_fields: bool = True) -> Path:
-    """生成报告 docx。"""
+def build(repo_url: str = REPO_URL, update_fields: bool = True,
+          out_path: Path | None = None) -> Path:
+    """生成报告 docx。out_path 为空时输出到项目根目录。"""
+    report_path = Path(out_path) if out_path else REPORT_PATH
     metrics = json.loads((OUT_DIR / "metrics.json").read_text(encoding="utf-8"))
     console_lines = (OUT_DIR / "console_output.txt").read_text(encoding="utf-8").split("\n")
     manifest = json.loads((OUT_DIR / "code_shots" / "manifest.json").read_text(encoding="utf-8"))
@@ -553,21 +555,21 @@ def build(repo_url: str = REPO_URL, update_fields: bool = True) -> Path:
     (work / "word" / "_rels" / "document.xml.rels").write_text(b.rels_xml(), encoding="utf-8")
     patch_content_types(work)
 
-    if REPORT_PATH.exists():
-        REPORT_PATH.unlink()
-    with zipfile.ZipFile(REPORT_PATH, "w", zipfile.ZIP_DEFLATED) as zf:
+    if report_path.exists():
+        report_path.unlink()
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(report_path, "w", zipfile.ZIP_DEFLATED) as zf:
         for path in sorted(work.rglob("*")):
             if path.is_file():
                 zf.write(path, path.relative_to(work).as_posix())
 
-    if update_fields and _try_update_fields():
-        pass
-    return REPORT_PATH
+    if update_fields:
+        _try_update_fields(report_path)
+    return report_path
 
 
-def _try_update_fields() -> bool:
-    from report_lib import update_fields_with_word
-    ok = update_fields_with_word(REPORT_PATH)
+def _try_update_fields(path: Path) -> bool:
+    ok = update_fields_with_word(path)
     print("目录与页码域已由 Word 更新。" if ok else
           "（提示）未检测到可用的 Word，目录将在打开文档时提示更新。")
     return ok
@@ -577,8 +579,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="按模板格式生成代码复现报告")
     parser.add_argument("--repo-url", default=REPO_URL,
                         help="显示在标题下方的项目仓库地址（蓝色下划线超链接）")
+    parser.add_argument("--out", default="",
+                        help="报告输出路径（默认输出到项目根目录）")
     parser.add_argument("--no-word", action="store_true",
                         help="跳过调用 Word 更新目录域（无 Office 环境时使用）")
     args = parser.parse_args()
-    out = build(repo_url=args.repo_url, update_fields=not args.no_word)
+    out = build(repo_url=args.repo_url, update_fields=not args.no_word,
+                out_path=args.out or None)
     print(f"报告已生成：{out}")
